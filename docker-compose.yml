@@ -1,0 +1,49 @@
+version: '2'
+services:
+  foodchart_internal_server: 
+    image: mongo 
+    container_name: mongo_internal
+    ports:
+    - "5050:27017" 
+
+  foodchart_neutral_server: 
+    image: mongo 
+    container_name: mongo_neutral
+    ports:
+    - "5051:27017" 
+
+  foodchart_final_server: 
+    image: mongo 
+    container_name: mongo_final
+    ports:
+    - "5052:27017"
+
+  update-foodchart:
+    image: php-update
+    container_name: update-foodchart
+    ports:
+    - "12004:80"
+    - "12005:443"
+    volumes:
+    - .././update-foodchart/:/var/www/html/
+    links:
+    - foodchart_internal_server
+    - foodchart_neutral_server
+    - foodchart_final_server
+
+  web-foodchart:
+    image: php
+    container_name: web-foodchart
+    ports:
+    - "8080:80"
+    - "8081:443"
+    volumes:
+    - .././web-foodchart/:/var/www/html/
+    links:
+    - foodchart_internal_server
+    - foodchart_neutral_server
+    - foodchart_final_server
+
+    # environment: 
+    #   MONGO_INITDB_ROOT_USERNAME: root 
+    #   MONGO_INITDB_ROOT_PASSWORD: example
