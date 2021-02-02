@@ -1,48 +1,89 @@
-version: '2'
+version: '3'
 services:
-  foodchart_internal_server: 
-    image: mongo 
-    container_name: mongo_internal
+  internalDB: 
+    image: "mongo:4.2"
+    container_name: fc_mongodb_internal
+    labels:
+      - fc
+    env_file:
+      - .env
+    environment:
+      - INTERNAL_MONGO_PORT
     ports:
-    - "5050:27017" 
+      - ${INTERNAL_MONGO_PORT}:${DEFAULT_MONGO_PORT} 
 
-  foodchart_neutral_server: 
-    image: mongo 
-    container_name: mongo_neutral
+  devDB: 
+    image: "mongo:4.2"
+    container_name: fc_mongodb_neutral
+    labels:
+      - fc
     ports:
-    - "5051:27017" 
+      - ${DEV_MONGO_PORT}:${DEFAULT_MONGO_PORT}
 
-  foodchart_final_server: 
-    image: mongo 
-    container_name: mongo_final
+  stagingDB: 
+    image: "mongo:4.2"
+    container_name: fc_mongodb_staging
+    labels:
+      - fc
     ports:
-    - "5052:27017"
+      - ${STAGING_MONGO_PORT}:${DEFAULT_MONGO_PORT}
 
-  update-foodchart:
-    image: php-update
-    container_name: update-foodchart
+  licensingDB: 
+    image: "mongo:4.2"
+    container_name: fc_mongodb_licensing
+    labels:
+      - fc
+    env_file:
+      - .env
+    environment:
+      - LICENSING_MONGO_PORT
     ports:
-    - "12004:80"
-    - "12005:443"
-    volumes:
-    - .././update-foodchart/:/var/www/html/
-    links:
-    - foodchart_internal_server
-    - foodchart_neutral_server
-    - foodchart_final_server
+      - ${LICENSING_MONGO_PORT}:${DEFAULT_MONGO_PORT} 
 
-  web-foodchart:
-    image: php
-    container_name: web-foodchart
-    ports:
-    - "8080:80"
-    - "8081:443"
-    volumes:
-    - .././web-foodchart/:/var/www/html/
-    links:
-    - foodchart_internal_server
-    - foodchart_neutral_server
-    - foodchart_final_server
+  # update-foodchart:
+  #   image: php-update
+  #   container_name: update-foodchart
+  #   ports:
+  #     - "12004:80"
+  #     - "12005:443"
+  #   volumes:
+  #     - .././update-foodchart/:/var/www/html/
+  #   links:
+  #     - internalDB
+  #     - devDB
+  #     - stagingDB
+
+  # apiGateway:
+  #   image: "fc_gateway"
+  #   build: 
+  #     context: ../
+  #     dockerfile: Docker/dockerfile-apigateway
+  #   container_name: fc_gateway
+  #   labels:
+  #     - fc
+  #   links:
+  #     - internalDB
+  #     - devDB
+  #     - stagingDB
+  #   ports:
+  #     - ${GATEWAY_HTTP_PORT}:${DEFAULT_GATEWAY_HTTP_PORT}
+  #     - ${GATEWAY_HTTPS_PORT}:${DEFAULT_GATEWAY_HTTPS_PORT}
+
+  # webClient:
+  #   image: "fc_webclient"
+  #   build: 
+  #     context: ../
+  #     dockerfile: Docker/dockerfile-webclient
+  #   container_name: fc_webclient
+  #   labels:
+  #     - fc
+  #   ports:
+  #     - ${WEB_CLIENT_PORT}:${DEFAULT_PHP_WEB_PORT}
+  #     - ${WEB_CLIENT_DEBUG_PORT}:${DEFAULT_PHP_DEBUG_PORT}
+  #   volumes:
+  #     - ../WebClient/:/var/www/html/
+  #   links:
+  #     - apiGateway
 
     # environment: 
     #   MONGO_INITDB_ROOT_USERNAME: root 

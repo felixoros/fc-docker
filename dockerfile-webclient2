@@ -1,0 +1,1 @@
+FROM vuejs/ci AS build
